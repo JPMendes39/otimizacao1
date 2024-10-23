@@ -1,0 +1,148 @@
+import math
+# Passo 1 
+# Pegamos num exercicio de teste  
+x1=(2,1)
+x2=(-1,0)
+x3=(-1,1)
+iteracoes = 0
+
+while True:# Funcao que mete o Metodo em loop
+    iteracoes += 1
+    # Metodo do Simplex
+
+    def nova_fmax(x):# Funçao para passar de maximizaçao para minimizaçao 
+        Fmax= (x[0])*(x[0])+x[1]*x[1]-x[0]+3*(x[0])*(x[1])+x[1] # funcao em maximo 
+        Fmin = -(Fmax) # fazer o max(x,y)=min(-x,-y)
+        return -Fmin # fazer o - min(-x,-y)=max
+    
+    bt= 0.5 
+    ap = 1  
+    erro =0.1  
+
+# Pontos de x1,x2,x3 na funçao 
+    X1=nova_fmax(x1)
+    X2=nova_fmax(x2)
+    X3=nova_fmax(x3)
+    print(X1,X2,X3)
+
+# Passo 2
+    # Descobri os pontos xh,xg,xl
+
+    def pontos(a,b,c):  
+        pontodex =[a,b,c] # criar uma lista de pontos 
+        Max_x= sorted(pontodex, reverse = True)#meter os pontos por ordem decresente 
+        return Max_x
+    
+    
+    Xh = pontos(X1,X2,X3)[0] # Maior numero da funcao = Xh
+
+    Xg = pontos(X1,X2,X3)[1]# 2 maior numero da funcao = Xg
+
+    Xl = pontos(X1,X2,X3)[2]# menor numero da funcao = Xl
+
+    
+
+    def encontrar_pontos(W,a,b,a1,b1,c):# associar o W=xh,xg,xl ; a=X1, b=X2,c=X3 e o a1,b1,c1 sao as suas coordenadas 
+        if W == a :
+            w = a1
+        elif W == b:
+            w= b1
+        else:
+            w=c
+        return w
+
+    xh= encontrar_pontos(Xh,X1,X2,x1,x2,x3) # coordenadas de xh 
+    xg = encontrar_pontos(Xg,X1,X2,x1,x2,x3)# coordenadas de xg
+    xl = encontrar_pontos(Xl,X1,X2,x1,x2,x3)# coordenadas de xl
+    print(xh,xg,xl)
+    
+    # Encontrar xc
+    def xc(a,b): # funçao de xc
+        resultado= ((a[0]+b[0])/2),((a[1]+b[1])/2)
+        return resultado
+    
+    
+    xc = xc(xl,xg)
+    Xc = nova_fmax(xc)
+    print(xc)
+    print(Xc)
+
+
+# Passo 3 
+
+    # Encontrar xr
+    def xr(a,b):# calculo do xr
+        new_xc= (2*(a[0]),2*(a[1]))# multiplicar as coordenadas de xc por 2 
+        resultado_xr = ((new_xc[0]-b[0]),(new_xc[1]-b[1])) 
+        return resultado_xr
+    
+    xr = xr(xc,xh)
+    Xr = nova_fmax(xr)
+    print(xr)
+    print(Xr)
+
+# Passo 4 
+
+    # Encontrar x_new
+    
+    def cond(b,c,d,e,f,g,h):#  b= Xr , c= Xl , d= Xg , e = Xh , f = xc, g=xh , h = xr
+        new_x= (0,0)
+        a = new_x
+        if b < c:
+            x_new1 = (1+ap)*f[0] - ap*g[0]
+            x_new2 = (1+ap)*f[1] - ap*g[1]
+            a= (x_new1,x_new2)
+        elif b >= e:
+            x_new3 = (1-bt)*f[0] + bt*g[0]
+            x_new4 = (1-bt)*f[1] + bt*g[1]
+            a= (x_new3,x_new4)
+        elif d < b < e:
+            x_new5 = (1+bt)*f[0] - bt*g[0]
+            x_new6 = (1+bt)*f[1] - bt*g[1]
+            a= (x_new5,x_new6)
+        else:
+            h= a
+        return a
+#Passo 5
+ # Calcular o f(x_new)
+    x_new = cond(Xr,Xl,Xg,Xh,xc,xh,xr)
+    X_new = nova_fmax(x_new)
+    print(x_new )
+
+    # Encontrar os pontos xh_new,xg_new,xl_new
+    Xh_new = pontos(X_new,Xg,Xl)[0] # Maior numero da funcao logo novo Xh
+
+    Xg_new = pontos(X_new,Xg,Xl)[1]# 2 pior numero da funcao logo novo Xg
+
+    Xl_new = pontos(X_new,Xg,Xl)[2]# menor numero da funcao logo novo Xl
+
+
+    xh_new = encontrar_pontos(Xh_new,Xg,Xl,xg,xl,x_new) # coordenadas de xh 
+    xg_new = encontrar_pontos(Xg_new,Xg,Xl,xg,xl,x_new)# coordenadas de xg
+    xl_new = encontrar_pontos(Xl_new,Xg,Xl,xg,xl,x_new)# coordenadas de xl
+
+#Passo 6
+#Teste de convergencia
+
+    def q(a,b,c,d):# a=Xh , b=Xg , c=Xc , d= Xl
+        resultado1 = (a-c)*(a-c)
+        resultado2 = (b-c)*(b-c)
+        resultado3 = (d-c)*(d-c)
+        resultado4 = resultado1 + resultado2 + resultado3
+        resultado5 = resultado4/3
+        resultado_final = math.sqrt(resultado5)
+        return resultado_final
+    Q = q(Xh_new,Xg_new,Xc,Xl_new)
+    print (Q)
+    
+    if Q < erro:
+        print('Encontramos o valor otimo ')
+        print(Q)
+        print(' O ponto minimo é', xl_new)# PONTO ÓTIMO DA FUNÇAO 
+        print('Iteracoes =', iteracoes)
+        break
+    else:
+        print('Vamos fazer mais uma iteracao' )
+        x1=xh_new
+        x2=xg_new
+        x3=xl_new 
